@@ -14,18 +14,18 @@ Use [draw.io](https://www.draw.io/) to open [Architecture](https://github.com/ak
 
 1. Developer push the  source code to GitHub
 2. Jenkins Will trigger the build by cloning the latest code from GitHub
-    a. Jenkins job will create the docker images with source code and bump up the image version, push to Docker registry (Copntainer Registry)
-   * Jenkins job will tag the source code with exactly same version number which given for the image, push the source code back to GitHub with tag
-   * Execute the kubernetes commands for redeploy the pods with latest images
-   * Redeployment process will start by download the latest image from image repository
-   * This steps have multiple sub-steps (7.a, 7.b, 7.c.. etc), Deployment Consuming allocated resources from Kubernetes Cluster and from outside as well.
-      a. ConfigMap in Kubernetes for storing non sensitive environment variables
-      * Storing Medium sensitive environment variables (encoded KMS realted variables which used for encrypt and decrypt the highly sensitive data)
-      * Persistent volumes, S3 storages etc..
-      * Envelop encription for hignly sensitive data such as tokens, keys, passwords etc..
-   * Creating a service for communicating with pods. (Initial steps for creating ingress)
-   * Creating a loadbalancer, forwarding rules, and assinging external public ip address (Ingress configuration)
-   * Clients accessing the products from outside (Public)
+3. Jenkins job will create the docker images with source code and bump up the image version, push to Docker registry (Copntainer Registry)
+4. Jenkins job will tag the source code with exactly same version number which given for the image, push the source code back to GitHub with tag
+5. Execute the kubernetes commands for redeploy the pods with latest images
+6. Redeployment process will start by download the latest image from image repository
+7. This steps have multiple sub-steps (7.a, 7.b, 7.c.. etc), Deployment Consuming allocated resources from Kubernetes Cluster and from outside as well.
+    1. ConfigMap in Kubernetes for storing non sensitive environment variables
+    2. Storing Medium sensitive environment variables (encoded KMS realted variables which used for encrypt and decrypt the highly sensitive data)
+    3. Persistent volumes, S3 storages etc..
+    4. Envelop encription for hignly sensitive data such as tokens, keys, passwords etc..
+8. Creating a service for communicating with pods. (Initial steps for creating ingress)
+9. Creating a loadbalancer, forwarding rules, and assinging external public ip address (Ingress configuration)
+10. Clients accessing the products from outside (Public)
 
 
 
