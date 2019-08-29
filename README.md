@@ -1,6 +1,6 @@
 # Cloud-Infra-K8s-Security
 
-## Use [draw.io](https://www.draw.io/) to open [Architecture]() [Security]()
+## Use [draw.io](https://www.draw.io/) to open [Architecture](https://github.com/akhilrajmailbox/Cloud-Infra-K8s-Security/tree/master/Architecture)  and [Security](https://github.com/akhilrajmailbox/Cloud-Infra-K8s-Security/tree/master/Security)
 
 
 ## Samples
