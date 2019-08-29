@@ -8,12 +8,12 @@ Use [draw.io](https://www.draw.io/) to open [Architecture](https://github.com/ak
 
 ### Basic CI/CD Workflow and Architecture
 
-![Architecture]()
+![Architecture](https://github.com/akhilrajmailbox/Cloud-Infra-K8s-Security/blob/master/Snapshots/cicd-workflow.png)
 
 
 ### Security Layer
 
-![KMS-overview]()
+![KMS-overview](https://github.com/akhilrajmailbox/Cloud-Infra-K8s-Security/blob/master/Snapshots/KMS-overview.png)
 
 
 ![KMS-Workflow](https://github.com/akhilrajmailbox/Cloud-Infra-K8s-Security/blob/master/Snapshots/KMS-Workflow.png)
