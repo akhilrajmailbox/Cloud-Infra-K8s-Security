@@ -10,7 +10,7 @@ Use [draw.io](https://www.draw.io/) to open [Architecture](https://github.com/ak
 
 ![Architecture](https://github.com/akhilrajmailbox/Cloud-Infra-K8s-Security/blob/master/Snapshots/cicd-workflow.png)
 
-
+### Steps :
 
 1. Developer push the  source code to GitHub
 2. Jenkins Will trigger the build by cloning the latest code from GitHub
@@ -38,6 +38,16 @@ Use [draw.io](https://www.draw.io/) to open [Architecture](https://github.com/ak
 
 Envelope Encryption is an approach/process used within many applications to encrypt data. A request is sent to the KMS to generate a data key based on one of the master keys. KMS returns a data key, which usually contains both the plain text version and the encrypted version of the data key.
 
-
-
 ![KMS-Workflow](https://github.com/akhilrajmailbox/Cloud-Infra-K8s-Security/blob/master/Snapshots/KMS-Workflow.png)
+
+### Steps :
+
+1. Download The Service Account Details (Creds) from Github Organization
+2. With that Service Account, will download the Encrypted DEK (Data Encryption Key) from S3 Bucket
+3. Each module's have its own docker images
+4. Each service account has its own KEK (Key Encryption Key) in S3 KMS, service account can access its own key not any other key.
+5. By using the kms key, the DEK will decrypt to plain text with help of service Account
+6. One piece of KEK is getting stored in kubernetes cluster where all services are running, each services have its own second piece of data in kubernetes  the pod will fetch the second piece of password from cluster
+7. The plain DEK not sufficient for decrypt the sensitive data, Actual DEK is sum of KEK and second piece of data from kubernetes
+8. This actual DEK will decrypt the sensitive info inside docker container.
+
