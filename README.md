@@ -5,6 +5,14 @@ Use [draw.io](https://www.draw.io/) to open [Architecture](https://github.com/ak
 
 ## Samples
 
+![Network](https://github.com/akhilrajmailbox/Cloud-Infra-K8s-Security/blob/master/Snapshots/network.png)
+
+
+1. public subnet : The pods and ingress which can be communicate from outside
+2. private subnet : The pods  getting deploy on this network
+3. backend subnet : The backend servers such as (Database servers, dependent servers) are being deploying on this network
+4. reserved subnet : for future use (need to add this network while creating Kubernetes cluster)
+
 
 ### Basic CI/CD Workflow and Architecture
 
