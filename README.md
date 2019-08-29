@@ -12,9 +12,9 @@ Use [draw.io](https://www.draw.io/) to open [Architecture](https://github.com/ak
 
 
 
-    1. Developer push the  source code to GitHub
-    2. Jenkins Will trigger the build by cloning the latest code from GitHub
-   * Jenkins job will create the docker images with source code and bump up the image version, push to Docker registry (Copntainer Registry)
+1. Developer push the  source code to GitHub
+2. Jenkins Will trigger the build by cloning the latest code from GitHub
+    1. Jenkins job will create the docker images with source code and bump up the image version, push to Docker registry (Copntainer Registry)
    * Jenkins job will tag the source code with exactly same version number which given for the image, push the source code back to GitHub with tag
    * Execute the kubernetes commands for redeploy the pods with latest images
    * Redeployment process will start by download the latest image from image repository
