@@ -12,7 +12,7 @@ Use [draw.io](https://www.draw.io/) to open [Architecture](https://github.com/ak
 
 
 
-   * Developer push the  source code to GitHub
+   1 * Developer push the  source code to GitHub
    * Jenkins Will trigger the build by cloning the latest code from GitHub
    * Jenkins job will create the docker images with source code and bump up the image version, push to Docker registry (Copntainer Registry)
    * Jenkins job will tag the source code with exactly same version number which given for the image, push the source code back to GitHub with tag
