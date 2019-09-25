@@ -13,6 +13,7 @@ Use [draw.io](https://www.draw.io/) to open [Architecture](https://github.com/ak
 3. backend subnet : The backend servers such as (Database servers, dependent servers) are being deploying on this network
 4. reserved subnet : for future use (need to add this network while creating Kubernetes cluster)
 
+![Subnet-Configuration](https://github.com/akhilrajmailbox/Cloud-Infra-K8s-Security/blob/master/Snapshots/subnet-conf.png)
 
 ### Basic CI/CD Workflow and Architecture
 
