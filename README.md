@@ -39,7 +39,7 @@ Use [draw.io](https://www.draw.io/) to open [Architecture](https://github.com/ak
 
 ### Security Layer Overview for Encryption and Decryption
 
-![KMS-overview](https://github.com/akhilrajmailbox/Cloud-Infra-K8s-Security/blob/master/Snapshots/KMS-overview.png)
+![KMS-overview](https://github.com/akhilrajmailbox/Cloud-Infra-K8s-Security/blob/master/Snapshots/subnet-conf.png)
 
 
 ### Envelope Encryption and High Security
