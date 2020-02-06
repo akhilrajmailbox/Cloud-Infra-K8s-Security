@@ -1,0 +1,770 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09", 
+    "Description": "project1 NetWork Architecture", 
+    "Parameters": {
+        "Name": {
+            "Description": "Enter Name", 
+            "Type": "String",
+            "Default": "project1-prod",
+            "AllowedValues": [
+                "project1-prod", 
+                "project1-dev"
+            ]
+        },
+        "cidrStart": {
+            "Description": "Enter starting 2 blocks of CIDR(EG: 10.0)", 
+            "Type": "String"
+        }, 
+        "Myip": {
+            "Description": "Enter myip", 
+            "Type": "String"
+        }, 
+        "keyname": {
+            "Description": "Name of an existing Amazon EC2 KeyPair for SSH access", 
+            "Type": "AWS::EC2::KeyPair::KeyName", 
+            "Default": "my_ssh_key"
+        }, 
+        "project1BastionInstanceType": {
+            "Description": "Bastion Instance type", 
+            "Type": "String", 
+            "Default": "t2.micro", 
+            "AllowedValues": [
+                "t1.micro", 
+                "t2.micro"
+            ], 
+            "ConstraintDescription": "Must be a valid instance type."
+        }
+    }, 
+    "Mappings": {
+        "RegionMap": {
+            "us-east-1": {
+                "AMI": "ami-009d6802948d06e52"
+            }, 
+            "us-west-2": {
+                "AMI": "ami-01bbe152bf19d0289"
+            }, 
+            "eu-west-1": {
+                "AMI": "ami-37c2f643"
+            }, 
+            "ap-southeast-1": {
+                "AMI": "ami-66f28c34"
+            }, 
+            "ap-northeast-1": {
+                "AMI": "ami-9c03a89d"
+            }
+        }
+    },
+    "Resources": {
+		"project1Vpc": {
+            "Type": "AWS::EC2::VPC", 
+            "Properties": {
+                "CidrBlock": {"Fn::Join": ["", [{"Ref": "cidrStart"}, ".0.0/16"]]}, 
+                "EnableDnsSupport": "TRUE", 
+                "EnableDnsHostnames": "TRUE", 
+                "InstanceTenancy": "default", 
+                "Tags": [
+                    {
+                        "Key": "Name", 
+                        "Value": {"Fn::Join": ["", [{"Ref": "Name"}, "-vpc"]]}
+                    }
+                ]
+            }
+        }, 
+		"project1Igw": {
+            "Type": "AWS::EC2::InternetGateway", 
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name", 
+                        "Value": {"Fn::Join": ["", [{"Ref": "Name"}, "-igw"]]}
+                    }
+                ]
+            }
+        }, 
+		"IGWAttach": {
+            "Type": "AWS::EC2::VPCGatewayAttachment", 
+            "Properties": {
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "InternetGatewayId": {
+                    "Ref": "project1Igw"
+                }
+            }
+        },
+        "publicSubnet1": {
+            "Type": "AWS::EC2::Subnet", 
+            "Properties": {
+                "CidrBlock": {"Fn::Join": ["", [{"Ref": "cidrStart"}, ".0.0/20"]]}, 
+                "AvailabilityZone": {"Fn::Join": ["", [{"Ref": "AWS::Region"}, "a"]]}, 
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "Tags": [
+                    {
+                        "Key": "Name", 
+                        "Value": {"Fn::Join": ["", [{"Ref": "Name"}, "-publicsubnet1"]]}
+                    }
+                ]
+            }
+        }, 
+		"publicSubnet2": {
+            "Type": "AWS::EC2::Subnet", 
+            "Properties": {
+                "CidrBlock": {"Fn::Join": ["", [{"Ref": "cidrStart"}, ".16.0/20"]]}, 
+                "AvailabilityZone": {"Fn::Join": ["", [{"Ref": "AWS::Region"}, "b"]]},
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "Tags": [
+                    {
+                        "Key": "Name", 
+                        "Value": {"Fn::Join": ["", [{"Ref": "Name"}, "-publicsubnet2"]]}
+                    }
+                ]
+            }
+        },
+        "publicSubnet3": {
+            "Type": "AWS::EC2::Subnet", 
+            "Properties": {
+                "CidrBlock": {"Fn::Join": ["", [{"Ref": "cidrStart"}, ".32.0/20"]]}, 
+                "AvailabilityZone": {"Fn::Join": ["", [{"Ref": "AWS::Region"}, "c"]]}, 
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "Tags": [
+                    {
+                        "Key": "Name", 
+                        "Value": {"Fn::Join": ["", [{"Ref": "Name"}, "-publicsubnet3"]]}
+                    }
+                ]
+            }
+        },
+        "privateSubnet1": {
+            "Type": "AWS::EC2::Subnet", 
+            "Properties": {
+                "CidrBlock": {"Fn::Join": ["", [{"Ref": "cidrStart"}, ".48.0/20"]]}, 
+                "AvailabilityZone": {"Fn::Join": ["", [{"Ref": "AWS::Region"}, "a"]]}, 
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "Tags": [
+                    {
+                        "Key": "Name", 
+                        "Value": {"Fn::Join": ["", [{"Ref": "Name"}, "-privatesubnet1"]]}
+                    }
+                ]
+            }
+        },
+        "privateSubnet2": {
+            "Type": "AWS::EC2::Subnet", 
+            "Properties": {
+                "CidrBlock": {"Fn::Join": ["", [{"Ref": "cidrStart"}, ".64.0/20"]]}, 
+                "AvailabilityZone": {"Fn::Join": ["", [{"Ref": "AWS::Region"}, "b"]]}, 
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "Tags": [
+                    {
+                        "Key": "Name", 
+                        "Value": {"Fn::Join": ["", [{"Ref": "Name"}, "-privatesubnet2"]]}
+                    }
+                ]
+            }
+        },
+        "privateSubnet3": {
+            "Type": "AWS::EC2::Subnet", 
+            "Properties": {
+                "CidrBlock": {"Fn::Join": ["", [{"Ref": "cidrStart"}, ".80.0/20"]]},
+                "AvailabilityZone": {"Fn::Join": ["", [{"Ref": "AWS::Region"}, "c"]]}, 
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "Tags": [
+                    {
+                        "Key": "Name", 
+                        "Value": {"Fn::Join": ["", [{"Ref": "Name"}, "-privatesubnet3"]]}
+                    }
+                ]
+            }
+        },
+        "backendSubnet1": {
+            "Type": "AWS::EC2::Subnet", 
+            "Properties": {
+                "CidrBlock": {"Fn::Join": ["", [{"Ref": "cidrStart"}, ".96.0/20"]]},
+                "AvailabilityZone": {"Fn::Join": ["", [{"Ref": "AWS::Region"}, "a"]]}, 
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "Tags": [
+                    {
+                        "Key": "Name", 
+                        "Value": {"Fn::Join": ["", [{"Ref": "Name"}, "-backendsubnet1"]]}
+                    }
+                ]
+            }
+        },
+        "backendSubnet2": {
+            "Type": "AWS::EC2::Subnet", 
+            "Properties": {
+                "CidrBlock": {"Fn::Join": ["", [{"Ref": "cidrStart"}, ".112.0/20"]]}, 
+                "AvailabilityZone": {"Fn::Join": ["", [{"Ref": "AWS::Region"}, "b"]]}, 
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "Tags": [
+                    {
+                        "Key": "Name", 
+                        "Value": {"Fn::Join": ["", [{"Ref": "Name"}, "-backendsubnet2"]]}
+                    }
+                ]
+            }
+        },
+        "backendSubnet3": {
+            "Type": "AWS::EC2::Subnet", 
+            "Properties": {
+                "CidrBlock": {"Fn::Join": ["", [{"Ref": "cidrStart"}, ".128.0/20"]]},
+                "AvailabilityZone": {"Fn::Join": ["", [{"Ref": "AWS::Region"}, "c"]]}, 
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "Tags": [
+                    {
+                        "Key": "Name", 
+                        "Value": {"Fn::Join": ["", [{"Ref": "Name"}, "-backendsubnet3"]]}
+                    }
+                ]
+            }
+        },
+        "reservedSubnet1": {
+            "Type": "AWS::EC2::Subnet", 
+            "Properties": {
+                "CidrBlock": {"Fn::Join": ["", [{"Ref": "cidrStart"}, ".144.0/20"]]},
+                "AvailabilityZone": {"Fn::Join": ["", [{"Ref": "AWS::Region"}, "a"]]}, 
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "Tags": [
+                    {
+                        "Key": "Name", 
+                        "Value": {"Fn::Join": ["", [{"Ref": "Name"}, "-reservedsubnet1"]]}
+                    }
+                ]
+            }
+        },
+        "reservedSubnet2": {
+            "Type": "AWS::EC2::Subnet", 
+            "Properties": {
+                "CidrBlock": {"Fn::Join": ["", [{"Ref": "cidrStart"}, ".160.0/20"]]},
+                "AvailabilityZone": {"Fn::Join": ["", [{"Ref": "AWS::Region"}, "b"]]}, 
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "Tags": [
+                    {
+                        "Key": "Name", 
+                        "Value": {"Fn::Join": ["", [{"Ref": "Name"}, "-reservedsubnet2"]]}
+                    }
+                ]
+            }
+        },
+        "reservedSubnet3": {
+            "Type": "AWS::EC2::Subnet", 
+            "Properties": {
+                "CidrBlock": {"Fn::Join": ["", [{"Ref": "cidrStart"}, ".176.0/20"]]}, 
+                "AvailabilityZone": {"Fn::Join": ["", [{"Ref": "AWS::Region"}, "c"]]}, 
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "Tags": [
+                    {
+                        "Key": "Name", 
+                        "Value": {"Fn::Join": ["", [{"Ref": "Name"}, "-reservedsubnet3"]]}
+                    }
+                ]
+            }
+        },
+        "project1NatEIP1" : {
+            "Type" : "AWS::EC2::EIP",
+            "Properties" : {
+                "Domain" : "vpc"
+            }
+        },
+        "project1NatGW1" : {
+            "DependsOn" : "IGWAttach",
+            "Type" : "AWS::EC2::NatGateway",
+            "Properties" : {
+                "AllocationId" : { "Fn::GetAtt" : ["project1NatEIP1", "AllocationId"]},
+                "SubnetId" : { "Ref" : "publicSubnet1"},
+                "Tags" : [ 
+                    {
+                        "Key" : "Name", 
+                        "Value" : {"Fn::Join": ["", [{"Ref": "Name"}, "-natgw1"]]}
+                    } 
+                ]
+            }
+        },
+        "project1NatEIP2" : {
+            "Type" : "AWS::EC2::EIP",
+            "Properties" : {
+                "Domain" : "vpc"
+            }
+        },
+        "project1NatGW2" : {
+            "DependsOn" : "IGWAttach",
+            "Type" : "AWS::EC2::NatGateway",
+            "Properties" : {
+                "AllocationId" : { "Fn::GetAtt" : ["project1NatEIP2", "AllocationId"]},
+                "SubnetId" : { "Ref" : "publicSubnet2"},
+                "Tags" : [ 
+                    {
+                        "Key" : "Name", 
+                        "Value" : {"Fn::Join": ["", [{"Ref": "Name"}, "-natgw2"]]}
+                    } 
+                ]
+            }
+        },
+        "project1NatEIP3" : {
+            "Type" : "AWS::EC2::EIP",
+            "Properties" : {
+                "Domain" : "vpc"
+            }
+        },
+        "project1NatGW3" : {
+            "DependsOn" : "IGWAttach",
+            "Type" : "AWS::EC2::NatGateway",
+            "Properties" : {
+                "AllocationId" : { "Fn::GetAtt" : ["project1NatEIP3", "AllocationId"]},
+                "SubnetId" : { "Ref" : "publicSubnet3"},
+                "Tags" : [ 
+                    {
+                        "Key" : "Name", 
+                        "Value" : {"Fn::Join": ["", [{"Ref": "Name"}, "-natgw3"]]}
+                    } 
+                ]
+            }
+        },
+        "privateroutetable1": {
+            "Type": "AWS::EC2::RouteTable", 
+            "Properties": {
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "Tags": [
+                    {
+                        "Key": "Name", 
+                        "Value": {"Fn::Join": ["", [{"Ref": "Name"}, "-privatert1"]]}
+                    }
+                ]
+            }
+        }, 
+        "privateroutetable2": {
+            "Type": "AWS::EC2::RouteTable", 
+            "Properties": {
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "Tags": [
+                    {
+                        "Key": "Name", 
+                        "Value": {"Fn::Join": ["", [{"Ref": "Name"}, "-privatert2"]]}
+                    }
+                ]
+            }
+        },
+        "privateroutetable3": {
+            "Type": "AWS::EC2::RouteTable", 
+            "Properties": {
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "Tags": [
+                    {
+                        "Key": "Name", 
+                        "Value": {"Fn::Join": ["", [{"Ref": "Name"}, "-privatert3"]]}
+                    }
+                ]
+            }
+        },
+        "publicroutetable": {
+            "Type": "AWS::EC2::RouteTable", 
+            "Properties": {
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "Tags": [
+                    {
+                        "Key": "Name", 
+                        "Value": {"Fn::Join": ["", [{"Ref": "Name"}, "-publicrt"]]}
+                    }
+                ]
+            }
+        },
+        "publicRoute": {
+            "Type": "AWS::EC2::Route", 
+            "DependsOn": "project1Igw", 
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "publicroutetable"
+                }, 
+                "DestinationCidrBlock": "0.0.0.0/0", 
+                "GatewayId": {
+                    "Ref": "project1Igw"
+                }
+            }
+        },
+        "privateroute1": {
+            "Type": "AWS::EC2::Route", 
+            "DependsOn": "project1NatGW1", 
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "privateroutetable1"
+                }, 
+                "DestinationCidrBlock": "0.0.0.0/0", 
+                "NatGatewayId": {
+                    "Ref": "project1NatGW1"
+                }
+            }
+        }, 
+        "privateroute2": {
+            "Type": "AWS::EC2::Route", 
+            "DependsOn": "project1NatGW2", 
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "privateroutetable2"
+                }, 
+                "DestinationCidrBlock": "0.0.0.0/0", 
+                "NatGatewayId": {
+                    "Ref": "project1NatGW2"
+                }
+            }
+        },  
+        "privateroute3": {
+            "Type": "AWS::EC2::Route", 
+            "DependsOn": "project1NatGW3", 
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "privateroutetable3"
+                }, 
+                "DestinationCidrBlock": "0.0.0.0/0", 
+                "NatGatewayId": {
+                    "Ref": "project1NatGW3"
+                }
+            }
+        },
+        "publicrtassociation1": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation", 
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "publicSubnet1"
+                }, 
+                "RouteTableId": {
+                    "Ref": "publicroutetable"
+                }
+            }
+        },
+        "publicrtassociation2": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation", 
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "publicSubnet2"
+                }, 
+                "RouteTableId": {
+                    "Ref": "publicroutetable"
+                }
+            }
+        },  
+        "publicrtassociation3": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation", 
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "publicSubnet3"
+                }, 
+                "RouteTableId": {
+                    "Ref": "publicroutetable"
+                }
+            }
+        },
+        "privatertassociation1": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation", 
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "privateSubnet1"
+                }, 
+                "RouteTableId": {
+                    "Ref": "privateroutetable1"
+                }
+            }
+        },  
+        "privatertassociation2": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation", 
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "privateSubnet2"
+                }, 
+                "RouteTableId": {
+                    "Ref": "privateroutetable2"
+                }
+            }
+        },
+        "privatertassociation3": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation", 
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "privateSubnet3"
+                }, 
+                "RouteTableId": {
+                    "Ref": "privateroutetable3"
+                }
+            }
+        },
+        "backendrtassociation1": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation", 
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "backendSubnet1"
+                }, 
+                "RouteTableId": {
+                    "Ref": "privateroutetable1"
+                }
+            }
+        },
+        "backendrtassociation2": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation", 
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "backendSubnet2"
+                }, 
+                "RouteTableId": {
+                    "Ref": "privateroutetable2"
+                }
+            }
+        },
+        "backendrtassociation3": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation", 
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "backendSubnet3"
+                }, 
+                "RouteTableId": {
+                    "Ref": "privateroutetable3"
+                }
+            }
+        },
+        "reservedrtassociation1": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation", 
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "reservedSubnet1"
+                }, 
+                "RouteTableId": {
+                    "Ref": "privateroutetable1"
+                }
+            }
+        },
+        "reservedrtassociation2": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation", 
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "reservedSubnet2"
+                }, 
+                "RouteTableId": {
+                    "Ref": "privateroutetable2"
+                }
+            }
+        },
+        "reservedrtassociation3": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation", 
+            "Properties": {
+                "SubnetId": {
+                    "Ref": "reservedSubnet3"
+                }, 
+                "RouteTableId": {
+                    "Ref": "privateroutetable3"
+                }
+            }
+        },
+        "bastionhostsg": {
+            "Type": "AWS::EC2::SecurityGroup", 
+            "Properties": {
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "GroupDescription": "project1-bastionhost-sg"
+            }
+        },
+        "loadbalancersg": {
+            "Type": "AWS::EC2::SecurityGroup", 
+            "Properties": {
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "GroupDescription": "project1-loadbalancersg-sg"
+            }
+        },
+        "eksmastersg": {
+            "Type": "AWS::EC2::SecurityGroup", 
+            "Properties": {
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "GroupDescription": "project1-eksmaster-sg"
+            }
+        },
+        "redissg": {
+            "Type": "AWS::EC2::SecurityGroup", 
+            "Properties": {
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "GroupDescription": "project1-redis-sg"
+            }
+        },
+        "influxdbsg": {
+            "Type": "AWS::EC2::SecurityGroup", 
+            "Properties": {
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "GroupDescription": "project1-influxdb-sg"
+            }
+        },
+        "mysqlsg": {
+            "Type": "AWS::EC2::SecurityGroup", 
+            "Properties": {
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "GroupDescription": "project1-mysql-sg"
+            }
+        },
+        "jenkinssg": {
+            "Type": "AWS::EC2::SecurityGroup", 
+            "Properties": {
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "GroupDescription": "project1-jenkins-sg"
+            }
+        },
+        "mongosg": {
+            "Type": "AWS::EC2::SecurityGroup", 
+            "Properties": {
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "GroupDescription": "project1-mysql-sg"
+            }
+        },
+        "trudesksg": {
+            "Type": "AWS::EC2::SecurityGroup", 
+            "Properties": {
+                "VpcId": {
+                    "Ref": "project1Vpc"
+                }, 
+                "GroupDescription": "project1-trudesk-sg"
+            }
+        },
+        "bastionhostsgInboud1": {
+            "Type": "AWS::EC2::SecurityGroupIngress", 
+            "Properties": {
+                "IpProtocol": "tcp", 
+                "FromPort": "22", 
+                "ToPort": "22", 
+                "GroupId": {
+                    "Fn::GetAtt": [
+                        "bastionhostsg", 
+                        "GroupId"
+                    ]
+                }, 
+                "CidrIp": {
+                    "Ref": "Myip"
+                }
+            }
+        },
+        "bastionhost1": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": {
+                    "Fn::FindInMap": [
+                        "RegionMap", 
+                        {
+                            "Ref": "AWS::Region"
+                        }, 
+                        "AMI"
+                    ]
+                }, 
+                "Tags": [
+                    {
+                        "Key": "Name", 
+                        "Value": {"Fn::Join": ["", [{"Ref": "Name"}, "-bastionhost1"]]}
+                    }
+                ], 
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": "true", 
+                        "GroupSet": [
+                            {
+                                "Ref": "bastionhostsg"
+                            }
+                        ],
+                        "DeviceIndex": "0", 
+                        "SubnetId": {
+                            "Ref": "publicSubnet1"
+                        }, 
+                        "Description": "eth0"
+                    }
+                ], 
+                "InstanceType": {
+                    "Ref": "project1BastionInstanceType"
+                }, 
+                "KeyName": {
+                    "Ref": "keyname"
+                }
+            }
+        },
+        "eksRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+               "AssumeRolePolicyDocument": {
+                  "Version" : "2012-10-17",
+                  "Statement": [ {
+                     "Effect": "Allow",
+                     "Principal": {
+                        "Service": [ "eks.amazonaws.com" ]
+                     },
+                     "Action": [ "sts:AssumeRole" ]
+                  } ]
+               },
+               "Path": "/",
+               "RoleName": {"Fn::Join": ["", [{"Ref": "Name"}, "-eksmaster-role"]]},
+               "ManagedPolicyArns": [
+                   "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy",
+                   "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
+               ]
+            }
+        },
+        "project1eks": {
+            "Type": "AWS::EKS::Cluster",
+            "Properties": {
+                "Name": {"Fn::Join": ["", [{"Ref": "Name"}, "-cluster"]]},
+                "Version": "1.11",
+                "RoleArn": {"Fn::GetAtt" : ["eksRole", "Arn"]},
+                "ResourcesVpcConfig": {
+                    "SecurityGroupIds": [{"Ref": "eksmastersg"}],
+                    "SubnetIds": [
+                        {"Ref": "publicSubnet1"},
+                        {"Ref": "publicSubnet2"},
+                        {"Ref": "publicSubnet3"},
+                        {"Ref": "privateSubnet1"},
+                        {"Ref": "privateSubnet2"},
+                        {"Ref": "privateSubnet3"},
+                        {"Ref": "reservedSubnet1"},
+                        {"Ref": "reservedSubnet2"},
+                        {"Ref": "reservedSubnet3"}
+                    ]
+                }
+            }
+        }
+    }
+}

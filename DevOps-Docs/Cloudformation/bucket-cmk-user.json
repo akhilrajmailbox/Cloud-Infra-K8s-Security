@@ -1,0 +1,250 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "S3 Bucket-CMK-User-Policy Creation",
+    "Parameters": {
+        "Modulename": {
+            "Description": "Module-name for project1",
+            "Type": "String",
+            "AllowedValues" : [ 
+                "module-1",
+                "module-2",
+                "module-3",
+                "module-4",
+                "module-5",
+                "module-6"
+            ]
+        },
+        "Environment": {
+            "Description": "Environment for project1",
+            "Type": "String",
+            "AllowedValues" : [ 
+                "development", 
+                "production"
+            ]
+        }
+    },
+    "Resources": {
+        "dekproject1S3Bucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "BucketName": { 
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {"Ref": "Environment"},
+                            {"Ref": "Modulename"},
+                            "dek"
+                        ]
+                    ]
+                },
+                "Tags" : [{
+                    "Key" : "server-use", 
+                    "Value" : "KMS"
+                }], 
+                "AccessControl" : "Private",
+                "PublicAccessBlockConfiguration": {
+                  "BlockPublicAcls" : true,
+                  "BlockPublicPolicy" : true,
+                  "IgnorePublicAcls" : true,
+                  "RestrictPublicBuckets" : true
+                },
+                "BucketEncryption": {
+                    "ServerSideEncryptionConfiguration": [{
+                        "ServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}
+                    }]
+                }
+            },
+            "DeletionPolicy": "Delete"
+        },
+        "dataproject1S3Bucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "BucketName": { 
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {"Ref": "Environment"},
+                            {"Ref": "Modulename"},
+                            "data"
+                        ]
+                    ]
+                },
+                "Tags" : [{
+                        "Key" : "server-use", 
+                        "Value" : "KMS"
+                }],
+                "AccessControl" : "Private",
+                "PublicAccessBlockConfiguration": {
+                  "BlockPublicAcls" : true,
+                  "BlockPublicPolicy" : true,
+                  "IgnorePublicAcls" : true,
+                  "RestrictPublicBuckets" : true
+                },
+                "BucketEncryption": {
+                    "ServerSideEncryptionConfiguration": [{
+                        "ServerSideEncryptionByDefault": {
+                            "SSEAlgorithm": "AES256"
+                        }
+                    }]
+                }
+            },
+            "DeletionPolicy": "Delete"
+        },
+        "dekproject1user": {
+            "Type": "AWS::IAM::User",
+            "Properties": { 
+                "UserName": { 
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {"Ref": "Environment"},
+                            {"Ref": "Modulename"},
+                            "dek"
+                        ]
+                    ]
+                }
+            }
+        },
+        "dataproject1user": {
+            "Type": "AWS::IAM::User",
+            "Properties": { 
+                "UserName": { 
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {"Ref": "Environment"},
+                            {"Ref": "Modulename"},
+                            "data"
+                        ]
+                    ]
+                }
+            }
+        },
+        "dekproject1S3BucketPolicy" : {
+            "Type" : "AWS::S3::BucketPolicy",
+            "Properties" : {
+                "Bucket" : {"Ref" : "dekproject1S3Bucket"},
+                "PolicyDocument": {
+                    "Statement":[{
+                        "Action": [
+                            "s3:GetObject",
+                            "s3:ListBucket"
+                        ],
+                        "Effect":"Allow",
+                        "Resource": [
+                            { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "dekproject1S3Bucket" } ]]},
+                            { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "dekproject1S3Bucket" } , "/*" ]]}
+                        ],
+                        "Principal": {
+                            "AWS": [{"Fn::GetAtt": ["dekproject1user", "Arn"]}]
+                        }
+                    }]
+                }
+            }
+        },
+        "dataproject1S3BucketPolicy" : {
+            "Type" : "AWS::S3::BucketPolicy",
+            "Properties" : {
+                "Bucket" : {"Ref" : "dataproject1S3Bucket"},
+                "PolicyDocument": {
+                    "Statement":[{
+                        "Action": [
+                            "s3:GetObject",
+                            "s3:ListBucket"
+                        ],
+                        "Effect":"Allow",
+                        "Resource": [
+                            { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "dataproject1S3Bucket" } ]]},
+                            { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "dataproject1S3Bucket" } , "/*" ]]}
+                        ],
+                        "Principal": {
+                            "AWS": [{"Fn::GetAtt": ["dataproject1user", "Arn"]}]
+                        }
+                    }]
+                }
+            }
+        },
+        "dekkey" : {
+            "Type" : "AWS::KMS::Key",
+            "Properties" : {
+                "Description" : "KMS for encrypt DATA",
+                "Enabled" :  true,
+                "EnableKeyRotation" : false,
+                "KeyPolicy" : {
+                    "Version": "2012-10-17",
+                    "Id": { 
+                        "Fn::Join": [
+                            "-",
+                            [
+                                "key",
+                                {"Ref": "Environment"},
+                                {"Ref": "Modulename"}                 
+                            ]
+                        ]
+                    },
+                    "Statement": [{
+                        "Sid": "Allow administration of the key",
+                        "Effect": "Allow",
+                        "Principal": {
+                            "AWS": [
+                                {
+                              "Fn::Join": [
+                                ":", [
+                                  "arn:aws:iam:",
+                                  {
+                                    "Ref": "AWS::AccountId"
+                                  },
+                                  "user/user1@domain.com"
+                                ]
+                              ]
+                            },
+                                {
+                              "Fn::Join": [
+                                ":", [
+                                  "arn:aws:iam:",
+                                  {
+                                    "Ref": "AWS::AccountId"
+                                  },
+                                  "user/user2@domain.com"
+                                ]
+                              ]
+                            }                            
+                        ]
+                        },                        
+                        "Action": "*",
+                        "Resource": "*"
+                    },
+                    {
+                        "Sid": "Allow use of the key",
+                        "Effect": "Allow",
+                        "Principal": {
+                            "AWS": [{"Fn::GetAtt": ["dekproject1user", "Arn"]}]
+                        },
+                        "Action": [
+                            "kms:Decrypt",
+                            "kms:DescribeKey",
+                            "kms:ListKeys"
+                        ], 
+                        "Resource": "*"
+                    }]
+                },
+                "Tags" : [{
+                    "Key" : "server-use", 
+                    "Value" : "KMS"
+                }]
+            }
+        },
+        "myKeyAlias" : {
+            "Type" : "AWS::KMS::Alias",
+            "Properties" : {
+                "AliasName" : { 
+                    "Fn::Join": [
+                        "/",
+                        ["alias", {"Ref": "Modulename"}]
+                    ]
+                },
+                "TargetKeyId" : {"Ref":"dekkey"}
+            }
+        }
+    }
+}
