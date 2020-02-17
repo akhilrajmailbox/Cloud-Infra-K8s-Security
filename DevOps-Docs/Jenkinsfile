@@ -1,0 +1,80 @@
+node {
+    def tag;
+    try {
+        stage("Clone repo from GitHub") {
+            checkout scm
+            tag = sh(returnStdout: true, script: "git log -n 1 --pretty=format:'%h'").trim()
+        }
+
+        stage("Build containers for ${tag}") {
+            sh "cd infrastructure/project1 && TAG=${tag} docker-compose build project1"
+            sh "cd infrastructure/project2 && TAG=${tag} docker-compose build project2"
+        }
+
+        stage("Run Linting") {
+            // Run linting against orders and products
+            // TODO: add linting against other apps
+            sh """
+                cd infrastructure/project1 && TAG=${tag} docker-compose -f docker-compose.yml \
+                run --rm project1 pylint orders products consumer project2s consumer project1 orders_publisher system
+            """
+        }
+
+        stage("Run project1 tests") {
+            // Run these commands using deploy conf, not override.
+            sh """
+                cd infrastructure/project1 && TAG=${tag} docker-compose -f docker-compose.yml \
+                run --rm project1 /bin/bash -c "\
+                DJANGO_SETTINGS_MODULE=project1.settings.project1 pytest consumer project1 orders users system && \
+                DJANGO_SETTINGS_MODULE=project1.settings.orders_publisher pytest orders_publisher && \
+                DJANGO_SETTINGS_MODULE=project1.settings.marketo_publisher pytest integrations"
+            """
+        }
+
+        stage("Run project2 tests") {
+            sh """
+                cd infrastructure/project2 && TAG=${tag} docker-compose -f docker-compose.yml \
+                run --rm project2 pytest project2s -v
+            """
+        }
+
+        stage("Run integration tests") {
+            sh """
+                cd infrastructure/project1 && TAG=${tag} docker-compose -f docker-compose.yml \
+                run --rm -e DJANGO_SETTINGS_MODULE=tests.settings project1 pytest tests/test_integration.py -v
+            """
+        }
+
+
+        if (env.BRANCH_NAME == "develop") {
+            stage("K8s Deployment") {
+                build job: 'project1-develop', parameters: [
+                    booleanParam(name: 'RECONFIGURE_ENV', value: true),
+                    booleanParam(name: 'INSECURE', value: false),
+                    booleanParam(name: 'NO_IMG_DEL', value: true),
+                    string(name: 'K8S_NAMESPACE', value: 'project1-develop'),
+                    string(name: 'DEPLOY_ENV', value: 'development'),
+                    string(name: 'ROLLING_IMG_NO', value: ''),
+                    string(name: 'DEPLOY_MODULE_NAME', value: 'full_deployment')]
+            }
+
+            stage("K8s Deployment project2") {
+                build job: 'project1-develop-project2', parameters: [
+                    booleanParam(name: 'RECONFIGURE_ENV', value: true),
+                    booleanParam(name: 'INSECURE', value: false),
+                    booleanParam(name: 'NO_IMG_DEL', value: true),
+                    string(name: 'K8S_NAMESPACE', value: 'project1-develop'),
+                    string(name: 'DEPLOY_ENV', value: 'development'),
+                    string(name: 'ROLLING_IMG_NO', value: ''),
+                    string(name: 'DEPLOY_MODULE_NAME', value: 'dm-project2'),
+                    string(name: 'project2_ID', value: 'develop')]
+            }
+        }
+
+    } finally {
+        stage('Clean-up') {
+            sh "cd infrastructure/project1 && TAG=${tag} docker-compose down -v --rmi all --remove-orphans"
+            sh "cd infrastructure/project2 && TAG=${tag} docker-compose down -v --rmi all --remove-orphans"
+        }
+    }
+}
