@@ -183,7 +183,7 @@ Resources:
         Fn::Join:
           - ""
           - - Ref: "AWS::Region"
-            - "c"
+            - "d"
       CidrBlock:
         Fn::Join:
           - ""
@@ -245,7 +245,7 @@ Resources:
         Fn::Join:
           - ""
           - - Ref: "AWS::Region"
-            - ""
+            - "b"
       CidrBlock:
         Fn::Join:
           - ""
@@ -276,7 +276,7 @@ Resources:
         Fn::Join:
           - ""
           - - Ref: "AWS::Region"
-            - "c"
+            - "d"
       CidrBlock:
         Fn::Join:
           - ""
@@ -313,7 +313,7 @@ Resources:
           - ""
           - - Ref: "CidrStart"
             - ".96.0/20"
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       Tags:
         - Key: "Name"
           Value:
@@ -344,7 +344,7 @@ Resources:
           - ""
           - - Ref: "CidrStart"
             - ".112.0/20"
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       Tags:
         - Key: "Name"
           Value:
@@ -369,13 +369,13 @@ Resources:
         Fn::Join:
           - ""
           - - Ref: "AWS::Region"
-            - "c"
+            - "d"
       CidrBlock:
         Fn::Join:
           - ""
           - - Ref: "CidrStart"
             - ".128.0/20"
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       Tags:
         - Key: "Name"
           Value:
@@ -431,7 +431,7 @@ Resources:
         Fn::Join:
           - ""
           - - Ref: "AWS::Region"
-            - ""
+            - "b"
       CidrBlock:
         Fn::Join:
           - ""
@@ -462,7 +462,7 @@ Resources:
         Fn::Join:
           - ""
           - - Ref: "AWS::Region"
-            - "c"
+            - "d"
       CidrBlock:
         Fn::Join:
           - ""
@@ -528,7 +528,7 @@ Resources:
     DependsOn: NatPublicIP2
     Properties: 
       AllocationId:
-        Fn::GetAtt: NatPublicIP1.AllocationId
+        Fn::GetAtt: NatPublicIP2.AllocationId
       SubnetId:
         Ref: PublicSubnet2
       Tags:
@@ -552,7 +552,7 @@ Resources:
       AllocationId:
         Fn::GetAtt: NatPublicIP3.AllocationId
       SubnetId:
-        Ref: PublicSubnet1
+        Ref: PublicSubnet3
       Tags:
         - Key: "Name"
           Value:
